@@ -8,7 +8,8 @@ contributions; local experiments are permitted).
 ## Layout
 - `config.env` - QEMU remote, base ref, targets, configure flags.
 - `qemu-src/` - base upstream clone (never edit). `worktrees/<soc>/` - per-SoC worktree on
-  branch `soc/<soc>`, build in `worktrees/<soc>/build/`.
+  branch `soc/<soc>`, build in `worktrees/<soc>/build/` (`build-kit/` on the libafl base, where
+  libafl_qemu owns `build/`).
 - `socs/<soc>/` - workspace: `inputs/` (untrusted user material), `intake/`, `spec/soc.yaml`
   (canonical SoC description with provenance), `qemu-base.env` (upstream or libafl base), `run.yaml` (boot config + milestones),
   `bringup/` (runs, LOG.md), `STATUS.md` (progress, decisions, questions for a human).
@@ -44,3 +45,4 @@ Python scripts run through `uv` (inline dependencies); don't call them with bare
 - Commit to `soc/<soc>` in the worktree at phase ends; never push.
 - Self-test: `make -C tests/fixture-m3 && scripts/bringup-run.py selftest-m3` (uses system QEMU and `tests/fixture-m3`;
   expected outcome `stall` after milestone `stage1`, spinning on `i2s +0x4`).
+  `selftest-m3-libafl` is the same check on the libafl base (needs `scripts/build.sh selftest-m3-libafl` first).

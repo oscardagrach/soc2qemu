@@ -1,0 +1,50 @@
+# Self-test spec (libafl base): QEMU's existing mps2-an385 board running tests/fixture-m3. Only the parts the
+# fixture touches are described. Sources are QEMU's own board code (qemu:<file>:<line>) and
+# the fixture (fixture:<file>).
+soc:
+  name: selftest-m3-libafl
+  vendor: Arm
+  family: MPS2 AN385
+  profile: m
+  qemu_binary: qemu-system-aarch64
+  board_name: mps2-an385
+  src: [qemu:hw/arm/mps2.c]
+
+cpus:
+  - {cluster: mcu, type: cortex-m3, count: 1, init_svtor: 0x0, src: [qemu:hw/arm/mps2.c]}
+
+interrupt_controller: {type: nvic, src: [qemu:hw/arm/armv7m.c]}
+
+memory:
+  - {name: zbt-ssram1, kind: rom, base: 0x0, size: 0x400000, src: [qemu:hw/arm/mps2.c]}
+  - {name: zbt-ssram23, kind: ram, base: 0x20000000, size: 0x400000, src: [qemu:hw/arm/mps2.c]}
+
+peripherals:
+  - name: uart0
+    class: uart
+    base: 0x40004000
+    size: 0x1000
+    strategy: reuse
+    qemu_model: cmsdk-apb-uart
+    boot_critical: true
+    confidence: high
+    src: [qemu:hw/arm/mps2.c]
+  - name: i2s
+    class: other
+    base: 0x40024000
+    size: 0x400
+    strategy: stub
+    boot_critical: true
+    notes: fixture polls +0x4 bit 0 forever (intentional hang)
+    confidence: high
+    src: [qemu:hw/arm/mps2.c, fixture:tests/fixture-m3/main.c]
+
+boot:
+  chain: [app]
+  reset_vector: 0x0
+  entry_mode: elf
+  console: uart0
+  boot_media: []
+  src: [fixture:tests/fixture-m3/link.ld]
+
+open_questions: []

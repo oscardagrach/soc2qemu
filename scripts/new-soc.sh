@@ -21,12 +21,12 @@ done
 [[ -d "$QEMU_SRC/.git" ]] || "$KIT_ROOT/scripts/setup-qemu.sh"
 
 case "$base" in
-  upstream) ref="$QEMU_BASE_REF" ;;
+  upstream) ref="$QEMU_BASE_REF"; extra_configure="" ;;
   libafl)
     git -C "$QEMU_SRC" remote get-url libafl >/dev/null 2>&1 ||
       git -C "$QEMU_SRC" remote add libafl "$QEMU_LIBAFL_REMOTE"
     git -C "$QEMU_SRC" fetch --filter=blob:none libafl
-    ref="$QEMU_LIBAFL_REF" ;;
+    ref="$QEMU_LIBAFL_REF"; extra_configure="$QEMU_LIBAFL_CONFIGURE_EXTRA" ;;
   *) die "--base must be upstream or libafl" ;;
 esac
 
@@ -52,10 +52,15 @@ QEMU_VERSION=$(cat "$tree/VERSION")
 X
 fi
 
-if [[ $configure -eq 1 && ! -f "$tree/build/build.ninja" ]]; then
-  mkdir -p "$tree/build"
+# Keep the kit's build dir out of git in every worktree (QEMU's .gitignore only covers /build/).
+exclude="$(git -C "$QEMU_SRC" rev-parse --path-format=absolute --git-common-dir)/info/exclude"
+grep -qx '/build-kit/' "$exclude" 2>/dev/null || echo '/build-kit/' >>"$exclude"
+
+build="$(soc_build "$soc")"
+if [[ $configure -eq 1 && ! -f "$build/build.ninja" ]]; then
+  mkdir -p "$build"
   # shellcheck disable=SC2086
-  (cd "$tree/build" && ../configure --target-list="$QEMU_TARGETS" $QEMU_CONFIGURE_EXTRA)
+  (cd "$build" && "$tree/configure" --target-list="$QEMU_TARGETS" $QEMU_CONFIGURE_EXTRA $extra_configure)
 fi
 echo "workspace: $ws"
-echo "qemu tree: $tree (branch soc/$soc, base $base, QEMU $(cat "$tree/VERSION"))"
+echo "qemu tree: $tree (branch soc/$soc, base $base, QEMU $(cat "$tree/VERSION"), kit build dir $(basename "$build"))"

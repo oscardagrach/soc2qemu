@@ -60,7 +60,9 @@ def find_qemu(soc: str, cfg: dict, override: str | None) -> str:
     if q != "auto":
         return os.path.expandvars(q)
     binary = cfg.get("qemu_binary", "qemu-system-aarch64")
-    path = KIT / "worktrees" / soc / "build" / binary
+    base_env = KIT / "socs" / soc / "qemu-base.env"
+    libafl = base_env.exists() and "QEMU_BASE=libafl" in base_env.read_text().splitlines()
+    path = KIT / "worktrees" / soc / ("build-kit" if libafl else "build") / binary
     if not path.exists():
         sys.exit(f"error: {path} not built (scripts/build.sh {soc})")
     return str(path)

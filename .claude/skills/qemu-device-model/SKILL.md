@@ -40,6 +40,7 @@ existing model of the same class) to copy current idioms.
 2. Add a qtest when the device has testable behaviour (`tests/qtest/<soc>_<dev>-test.c`,
    registered in `tests/qtest/meson.build` like the stm32l4x5 tests) once the device is
    wired into the machine. Run it with
-   `cd worktrees/<soc>/build && QTEST_QEMU_BINARY=./qemu-system-aarch64 ./tests/qtest/<soc>_<dev>-test`.
+   `cd worktrees/<soc>/build && QTEST_QEMU_BINARY=./qemu-system-aarch64 ./tests/qtest/<soc>_<dev>-test`
+   (the kit build dir is `build-kit` instead of `build` when `socs/<soc>/qemu-base.env` says `QEMU_BASE=libafl`).
 3. Return: files written, registers modeled, behaviours assumed (each with its source),
    anything left as LOG_UNIMP.

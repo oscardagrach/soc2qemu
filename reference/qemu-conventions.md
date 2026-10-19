@@ -20,6 +20,8 @@ Each SoC records its base in `socs/<soc>/qemu-base.env`:
   - `class_init(ObjectClass *, const void *)`, `const Property[]` without END_OF_LIST, and
     `arm_common_ss` are the same as upstream.
   Never edit LibAFL's own patches in the tree; add SoC code next to them.
+  The kit builds in `build-kit/` on this base, because libafl_qemu configures and builds its
+  own copy of QEMU in `build/` when it is pointed at the tree with `LIBAFL_QEMU_DIR`.
 
 ## Reference files to copy from
 
