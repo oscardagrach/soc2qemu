@@ -25,6 +25,42 @@ PC-hotspot/unimp triage, parallel investigation, fixes, repeat until the last mi
 
 See `CLAUDE.md` for layout and rules.
 
+## Example: finding a bring-up hang
+
+Most bring-up stalls are firmware polling a status bit QEMU doesn't set. `bringup-run.py`
+finds them without a debugger: it watches serial output for milestones, stops when output
+goes quiet, samples every CPU's PC over QMP, disassembles the hot spot, and ranks the
+unimplemented register accesses. Agents read the resulting `summary.json`; this is the
+human-readable `summary.md` from the self-test (`tests/fixture-m3`, a Cortex-M3 program
+that waits for a ready bit in an unmodeled device):
+
+```
+$ make -C tests/fixture-m3 && scripts/bringup-run.py selftest-m3
+# selftest-m3 run 001
+outcome: **stall** (exit 0, 8.58s), milestones 1/2 (last: stage1), serial 16 bytes
+
+## serial (tail)
+fixture: stage1
+
+## pc hotspots
+- cpu0: 0x30..0x30 100% of 30 samples (SPINNING); top [['0x30', 30]]
+0x0000002c:  601a       str      r2, [r3]
+0x0000002e:  461a       mov      r2, r3
+0x00000030:  6853       ldr      r3, [r2, #4]
+0x00000032:  f013 0f01  tst.w    r3, #1
+0x00000036:  d0fb       beq      #0x30
+
+## unimplemented devices (by access count)
+- i2s: 5415306
+
+## last distinct unimplemented accesses (most recent last)
+- i2s write +0x0 size 4 x1 values 0x00001234
+- i2s read +0x4 size 4 x5415305
+```
+
+The loop at `0x30` reads `i2s +0x4` and waits for bit 0. That register and bit are what the
+model has to provide, which is the fix the bring-up loop's agents go looking for.
+
 ## License
 
 Dual-licensed under GPL-3.0-only or a commercial license; see [LICENSING.md](LICENSING.md).
