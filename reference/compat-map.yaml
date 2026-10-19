@@ -1,0 +1,60 @@
+# Devicetree compatible -> existing QEMU model. Seed list, checked against upstream QEMU 11.1.50
+# (2026-10-16). Before relying on an entry, confirm the type still exists:
+#   grep -rn 'define TYPE_.*"<qom_type>"' worktrees/<soc>/include worktrees/<soc>/hw
+# "fit" says how often the model works unmodified: drop-in | props | partial (expect quirks).
+# Add entries as ports discover new matches; keep `verified` honest.
+
+arm,pl011:              {qom_type: pl011, fit: drop-in, verified: 2026-10-16}
+arm,sbsa-uart:          {qom_type: pl011, fit: partial, notes: "SBSA subset; pl011 superset usually fine", verified: 2026-10-16}
+ns16550a:               {qom_type: serial-mm, fit: props, notes: "regshift 0 unless reg-shift in DTS", verified: 2026-10-16}
+ns16550:                {qom_type: serial-mm, fit: props, verified: 2026-10-16}
+snps,dw-apb-uart:       {qom_type: serial-mm, fit: props, notes: "regshift=2 (reg-shift = <2>); DW extras (USR @0x7c) not modeled - add an unimp/overlay if firmware polls USR", verified: 2026-10-16}
+cdns,uart-r1p12:        {qom_type: cadence_uart, fit: drop-in, verified: 2026-10-16}
+xlnx,xuartps:           {qom_type: cadence_uart, fit: drop-in, verified: 2026-10-16}
+arm,cmsdk-uart:         {qom_type: cmsdk-apb-uart, fit: drop-in, verified: 2026-10-16}
+
+arm,gic-400:            {qom_type: arm_gic, fit: props, notes: "revision=2; num-irq = SPIs + 32", verified: 2026-10-16}
+arm,cortex-a15-gic:     {qom_type: arm_gic, fit: props, notes: "revision=2", verified: 2026-10-16}
+arm,cortex-a9-gic:      {qom_type: a9mpcore_priv, fit: props, notes: "comes with SCU/TWD inside a9mpcore_priv", verified: 2026-10-16}
+arm,gic-v3:             {qom_type: arm-gicv3, fit: props, notes: "num-irq = SPIs + 32; redist-region-count; has-security-extensions if EL3", verified: 2026-10-16}
+arm,gic-v3-its:         {qom_type: arm-gicv3-its, fit: props, verified: 2026-10-16}
+arm,gic-v2m-frame:      {qom_type: arm-gicv2m, fit: props, verified: 2026-10-16}
+arm,armv8-timer:        {qom_type: null, fit: drop-in, notes: "generic timer is part of the CPU; wire CPU timer outputs to GIC PPIs (see fsl-imx8mp.c)", verified: 2026-10-16}
+arm,armv7-timer:        {qom_type: null, fit: drop-in, notes: "as above", verified: 2026-10-16}
+arm,cortex-a9-twd-timer: {qom_type: arm_mptimer, fit: drop-in, notes: "usually via a9mpcore_priv", verified: 2026-10-16}
+
+arm,sp804:              {qom_type: sp804, fit: drop-in, verified: 2026-10-16}
+cdns,ttc:               {qom_type: cadence_ttc, fit: drop-in, verified: 2026-10-16}
+arm,sbsa-gwdt:          {qom_type: sbsa-gwdt, fit: drop-in, verified: 2026-10-16}
+arm,pl061:              {qom_type: pl061, fit: drop-in, verified: 2026-10-16}
+arm,pl022:              {qom_type: pl022, fit: drop-in, verified: 2026-10-16}
+arm,pl031:              {qom_type: pl031, fit: drop-in, verified: 2026-10-16}
+arm,pl330:              {qom_type: pl330, fit: props, verified: 2026-10-16}
+arm,pl080:              {qom_type: pl080, fit: drop-in, verified: 2026-10-16}
+arm,pl18x:              {qom_type: pl181, fit: partial, verified: 2026-10-16}
+arm,pl050:              {qom_type: pl050, fit: partial, notes: "pl050_kbd / pl050_mouse subtypes", verified: 2026-10-16}
+
+snps,designware-i2c:    {qom_type: designware-i2c, fit: drop-in, verified: 2026-10-16}
+fsl,imx21-i2c:          {qom_type: imx.i2c, fit: drop-in, verified: 2026-10-16}
+
+cdns,macb:              {qom_type: cadence_gem, fit: partial, verified: 2026-10-16}
+cdns,gem:               {qom_type: cadence_gem, fit: drop-in, verified: 2026-10-16}
+
+snps,dwc2:              {qom_type: dwc2-usb, fit: partial, notes: "host mode only", verified: 2026-10-16}
+generic-ehci:           {qom_type: platform-ehci-usb, fit: drop-in, verified: 2026-10-16}
+generic-ohci:           {qom_type: sysbus-ohci, fit: drop-in, verified: 2026-10-16}
+generic-xhci:           {qom_type: sysbus-xhci, fit: drop-in, verified: 2026-10-16}
+snps,dwc3:              {qom_type: sysbus-xhci, fit: partial, notes: "host-mode xHCI at the DWC3 base; DWC3 global regs (0xc100+) need a stub", verified: 2026-10-16}
+generic-ahci:           {qom_type: sysbus-ahci, fit: drop-in, verified: 2026-10-16}
+
+generic-sdhci:          {qom_type: generic-sdhci, fit: drop-in, verified: 2026-10-16}
+snps,dwcmshc-sdhci:     {qom_type: generic-sdhci, fit: partial, notes: "SDHCI core works; vendor area needs a stub", verified: 2026-10-16}
+arasan,sdhci-8.9a:      {qom_type: generic-sdhci, fit: partial, verified: 2026-10-16}
+
+cfi-flash:              {qom_type: cfi.pflash01, fit: props, notes: "or cfi.pflash02 for AMD command set", verified: 2026-10-16}
+jedec,spi-nor:          {qom_type: m25p80-generic, fit: props, notes: "pick the concrete flash part type (e.g. n25q256a) behind a SPI controller", verified: 2026-10-16}
+
+snps,dw-pcie:           {qom_type: designware-pcie-host, fit: partial, verified: 2026-10-16}
+pci-host-ecam-generic:  {qom_type: gpex-pcihost, fit: drop-in, verified: 2026-10-16}
+arm,smmu-v3:            {qom_type: arm-smmuv3, fit: props, verified: 2026-10-16}
+virtio,mmio:            {qom_type: virtio-mmio, fit: drop-in, verified: 2026-10-16}

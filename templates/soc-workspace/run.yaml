@@ -1,0 +1,22 @@
+# How scripts/bringup-run.py boots this SoC. ${SOC_DIR}, ${KIT_ROOT}, ${RUN_DIR} are expanded in args.
+machine: __SOC__-board            # QEMU -M name registered by the machine file
+qemu: auto                        # auto = worktrees/__SOC__/build/<qemu_binary>; or an absolute path
+qemu_binary: qemu-system-aarch64
+serial_count: 1                   # how many -serial file:... backends (console UART index matters)
+timeout: 120                      # hard stop, seconds
+stall_seconds: 15                 # stop when serial output has been silent this long
+log_flags: unimp,guest_errors     # add ',int' to log exceptions (noisy once Linux is up)
+pc_samples: 30
+args:                             # boot images and extra options, e.g.
+  # - -bios
+  # - ${SOC_DIR}/inputs/bootrom.bin
+  # - -drive
+  # - if=sd,format=raw,file=${SOC_DIR}/inputs/sdcard.img
+  # - -kernel
+  # - ${SOC_DIR}/inputs/Image
+milestones:                       # ordered; the last one means "done". Regexes match the serial log.
+  # - {name: bootrom, regex: "BootROM"}
+  # - {name: spl, regex: "U-Boot SPL"}
+  # - {name: uboot, regex: "U-Boot 20"}
+  # - {name: kernel, regex: "Booting Linux on physical CPU"}
+  # - {name: shell, regex: "(login:|# $)"}

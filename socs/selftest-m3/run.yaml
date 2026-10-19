@@ -1,0 +1,9 @@
+# Self-test of the kit using the system QEMU and tests/fixture-m3 (expected outcome: stall at stage1).
+machine: mps2-an385
+qemu: /usr/bin/qemu-system-aarch64
+timeout: 20
+stall_seconds: 3
+args: [-kernel, "${KIT_ROOT}/tests/fixture-m3/fixture.elf"]
+milestones:
+  - {name: stage1, regex: "fixture: stage1"}
+  - {name: stage2, regex: "fixture: stage2"}

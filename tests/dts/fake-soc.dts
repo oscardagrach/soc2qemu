@@ -1,0 +1,37 @@
+// Synthetic kernel-style DTS exercising includes, labels, nested ranges, interrupt-parent
+// inheritance, interrupts-extended, and clocks. Used to self-test scripts/dts2spec.py.
+/dts-v1/;
+#define GIC_SPI 0
+#define IRQ_TYPE_LEVEL_HIGH 4
+/ {
+	model = "Fake SoC EVB"; compatible = "fake,evb", "fake,soc";
+	#address-cells = <2>; #size-cells = <2>;
+	interrupt-parent = <&gic>;
+	cpus { #address-cells = <1>; #size-cells = <0>;
+		cpu0: cpu@0 { device_type = "cpu"; compatible = "arm,cortex-a55"; reg = <0x0>; enable-method = "psci"; };
+		cpu1: cpu@100 { device_type = "cpu"; compatible = "arm,cortex-a55"; reg = <0x100>; enable-method = "psci"; };
+		cpu2: cpu@200 { device_type = "cpu"; compatible = "arm,cortex-a76"; reg = <0x200>; enable-method = "psci"; };
+	};
+	psci { compatible = "arm,psci-1.0"; method = "smc"; };
+	memory@40000000 { device_type = "memory"; reg = <0x0 0x40000000 0x0 0x80000000>; };
+	osc24m: osc24m { compatible = "fixed-clock"; #clock-cells = <0>; clock-frequency = <24000000>; };
+	soc {
+		compatible = "simple-bus"; #address-cells = <1>; #size-cells = <1>;
+		ranges = <0x0 0x0 0xf0000000 0x10000000>;
+		gic: interrupt-controller@1000000 { compatible = "arm,gic-v3"; interrupt-controller; #interrupt-cells = <3>;
+			reg = <0x1000000 0x10000>, <0x1040000 0x100000>; };
+		cru: clock-controller@2000000 { compatible = "fake,cru"; reg = <0x2000000 0x1000>; #clock-cells = <1>; clocks = <&osc24m>; };
+		uart0: serial@3000000 { compatible = "fake,soc-uart", "snps,dw-apb-uart"; reg = <0x3000000 0x100>;
+			reg-shift = <2>; reg-io-width = <4>; interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&cru 7>, <&cru 8>; clock-names = "baudclk", "apb_pclk"; };
+		gpio0: gpio@3100000 { compatible = "fake,gpio"; reg = <0x3100000 0x100>; interrupt-controller; #interrupt-cells = <2>;
+			interrupts = <GIC_SPI 20 IRQ_TYPE_LEVEL_HIGH>; };
+		apb: bus@4000000 { compatible = "simple-bus"; #address-cells = <1>; #size-cells = <1>; ranges = <0x0 0x4000000 0x100000>;
+			timer@1000 { compatible = "fake,timer"; reg = <0x1000 0x100>; interrupts = <GIC_SPI 30 4>, <GIC_SPI 31 4>; };
+			button@2000 { compatible = "fake,keys"; reg = <0x2000 0x10>; interrupts-extended = <&gpio0 5 2>; status = "disabled"; };
+		};
+		mmc@5000000 { compatible = "fake,dwcmshc", "snps,dwcmshc-sdhci"; reg = <0x5000000 0x10000>; interrupts = <GIC_SPI 40 4>; };
+	};
+	chosen { stdout-path = "serial0:115200n8"; };
+	aliases { serial0 = &uart0; };
+};
