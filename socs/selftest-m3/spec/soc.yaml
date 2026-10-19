@@ -1,51 +1,50 @@
-# Canonical description of the selftest-m3 SoC. Written by intake, consumed by scaffold/devices/bringup.
-# Every fact carries `src:` provenance: dts:<file>:<node>, trm:<file>:p<page>, bsp:<path>:<line>,
-# fw:<blob>@<addr> (Ghidra), guess:<reason>. `confidence`: high | medium | low.
+# Self-test spec: QEMU's existing mps2-an385 board running tests/fixture-m3. Only the parts the
+# fixture touches are described. Sources are QEMU's own board code (qemu:<file>:<line>) and
+# the fixture (fixture:<file>).
 soc:
   name: selftest-m3
-  vendor: ""
-  family: ""
-  profile: ""          # a (Cortex-A) | m (Cortex-M) | r (Cortex-R) | mixed
-  qemu_binary: qemu-system-aarch64   # runs 32-bit Arm boards too
-  board_name: selftest-m3-board
-  src: []
+  vendor: Arm
+  family: MPS2 AN385
+  profile: m
+  qemu_binary: qemu-system-aarch64
+  board_name: mps2-an385
+  src: [qemu:hw/arm/mps2.c]
 
-cpus: []
-#  - {cluster: 0, type: cortex-a53, count: 4, rvbar: 0x0, has_el3: true, has_el2: true, src: [...]}
-#  - {cluster: mcu, type: cortex-m4, count: 1, init_svtor: 0x0, cpuclk_hz: 64000000, src: [...]}
+cpus:
+  - {cluster: mcu, type: cortex-m3, count: 1, init_svtor: 0x0, src: [qemu:hw/arm/mps2.c]}
 
-interrupt_controller: {}
-#  type: gicv3 | gic400 | nvic | other
-#  dist_base: 0x0, redist_base: 0x0, cpu_if_base: 0x0, num_irqs: 0, src: [...]
+interrupt_controller: {type: nvic, src: [qemu:hw/arm/armv7m.c]}
 
-memory: []
-#  - {name: bootrom, kind: rom, base: 0x0, size: 0x10000, src: [...]}
-#  - {name: sram, kind: ram, base: 0x0, size: 0x0, src: [...]}
-#  - {name: dram, kind: ram, base: 0x40000000, size: 0x80000000, src: [...]}
+memory:
+  - {name: zbt-ssram1, kind: rom, base: 0x0, size: 0x400000, src: [qemu:hw/arm/mps2.c]}
+  - {name: zbt-ssram23, kind: ram, base: 0x20000000, size: 0x400000, src: [qemu:hw/arm/mps2.c]}
 
-peripherals: []
-#  - name: uart0
-#    class: uart | timer | wdt | gpio | i2c | spi | qspi | mmc | eth | usb | dma | clock | reset | pinctrl | sysctl | ddr | rtc | rng | crypto | efuse | mailbox | other
-#    compatible: [snps,dw-apb-uart]
-#    base: 0x0
-#    size: 0x1000
-#    irqs: [{line: 0, type: spi, num: 5, trigger: level}]   # num = SPI number as written in the DTS (GIC_SPI 5 = INTID 37); NVIC: external IRQ number
-#    clocks: []
-#    strategy: reuse | new | stub        # reuse an existing QEMU model, write a new one, or create_unimplemented_device
-#    qemu_model: serial-mm               # for reuse: QOM type name verified in the tree
-#    boot_critical: true                 # touched by the boot chain we target
-#    notes: ""
-#    confidence: high
-#    src: []
+peripherals:
+  - name: uart0
+    class: uart
+    base: 0x40004000
+    size: 0x1000
+    strategy: reuse
+    qemu_model: cmsdk-apb-uart
+    boot_critical: true
+    confidence: high
+    src: [qemu:hw/arm/mps2.c]
+  - name: i2s
+    class: other
+    base: 0x40024000
+    size: 0x400
+    strategy: stub
+    boot_critical: true
+    notes: fixture polls +0x4 bit 0 forever (intentional hang)
+    confidence: high
+    src: [qemu:hw/arm/mps2.c, fixture:tests/fixture-m3/main.c]
 
 boot:
-  chain: []            # e.g. [bootrom, spl, uboot, linux] or [app]
+  chain: [app]
   reset_vector: 0x0
-  entry_mode: ""       # bootrom-image | firmware (-bios) | kernel (-kernel/-dtb) | elf
+  entry_mode: elf
   console: uart0
-  boot_media: []       # spi-nor | emmc | sd | nand | usb | uart
-  notes: ""
-  src: []
+  boot_media: []
+  src: [fixture:tests/fixture-m3/link.ld]
 
 open_questions: []
-#  - {q: "...", blocking: false, needed_for: "...", tried: ["trm", "bsp grep"]}

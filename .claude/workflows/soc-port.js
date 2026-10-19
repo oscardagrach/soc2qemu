@@ -1,7 +1,7 @@
 export const meta = {
   name: 'soc-port',
   description: 'Port a SoC to QEMU end to end: workspace, intake, scaffold, device models, boot bring-up loop',
-  whenToUse: 'Start or resume a full SoC port. args: {soc: "<name>", reviewSpec?: false, maxIterations?: 12, from?: "intake"|"scaffold"|"devices"|"bringup"}',
+  whenToUse: 'Start or resume a full SoC port. args: {soc: "<name>", reviewSpec?: false, maxIterations?: 12, base?: "upstream"|"libafl", from?: "intake"|"scaffold"|"devices"|"bringup"}',
   phases: [
     { title: 'Workspace', detail: 'worktree, build config, inputs present' },
     { title: 'Intake', detail: 'workflow soc-intake' },
@@ -25,8 +25,8 @@ const out = { soc }
 
 phase('Workspace')
 const ws = await agent(
-  `${PRE}\nEnsure the workspace exists: run scripts/new-soc.sh ${soc} if ${W} or ${T}/build/build.ninja is missing (first run clones and configures QEMU; it can take several minutes).
-Report whether ${W}/inputs contains anything besides README.md, and the current phase line of ${W}/STATUS.md.`,
+  `${PRE}\nEnsure the workspace exists: run scripts/new-soc.sh ${soc} --base ${args.base || 'upstream'} if ${W} or ${T}/build/build.ninja is missing (first run clones and configures QEMU; it can take several minutes).
+If the workspace already exists with a different base in ${W}/qemu-base.env, keep the existing one and say so in error. Report whether ${W}/inputs contains anything besides README.md, and the current phase line of ${W}/STATUS.md.`,
   { label: 'workspace', schema: { type: 'object', properties: { ready: { type: 'boolean' }, hasInputs: { type: 'boolean' }, status: { type: 'string' }, error: { type: 'string' } }, required: ['ready', 'hasInputs'] } },
 )
 if (!ws || !ws.ready) return { ...out, status: 'workspace-failed', detail: ws }

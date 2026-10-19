@@ -10,7 +10,7 @@ contributions; local experiments are permitted).
 - `qemu-src/` - base upstream clone (never edit). `worktrees/<soc>/` - per-SoC worktree on
   branch `soc/<soc>`, build in `worktrees/<soc>/build/`.
 - `socs/<soc>/` - workspace: `inputs/` (untrusted user material), `intake/`, `spec/soc.yaml`
-  (canonical SoC description with provenance), `run.yaml` (boot config + milestones),
+  (canonical SoC description with provenance), `qemu-base.env` (upstream or libafl base), `run.yaml` (boot config + milestones),
   `bringup/` (runs, LOG.md), `STATUS.md` (progress, decisions, questions for a human).
 - `templates/soc-workspace/` - copied by `scripts/new-soc.sh`.
 - `reference/qemu-conventions.md` - QEMU idioms and reference files (the tree wins on conflict).
@@ -23,12 +23,13 @@ contributions; local experiments are permitted).
 | Script | Purpose |
 |---|---|
 | `scripts/setup-qemu.sh` | clone/fetch the base QEMU tree |
-| `scripts/new-soc.sh <soc>` | workspace + worktree + configure |
+| `scripts/new-soc.sh <soc> [--base upstream\|libafl]` | workspace + worktree + configure; `libafl` bases the port on qemu-libafl-bridge for libafl_qemu fuzzing |
 | `scripts/build.sh <soc> [--files a.c,b.c]` | serialized ninja build; `--files` reports only those files |
 | `scripts/append-snippet.sh <file>` | locked, idempotent append to trace-events/meson.build/Kconfig |
 | `scripts/dts2spec.py <dts/dtb> [-I dir]` | DTS -> partial spec (ranges, IRQs, clocks, reuse candidates) |
 | `scripts/pdf2text.sh <soc> <pdf>` | TRM -> greppable text with page markers |
 | `scripts/spec-check.py <soc>` | validate spec (overlaps, strategies, models exist in tree) |
+| `scripts/fuzz-profile.py <soc>` | export `fuzz/profile.yaml` (address map, polled MMIO reads, snapshot candidates) for a fuzzing harness |
 | `scripts/bringup-run.py <soc> [--label x] [-- qemu args]` | boot once; milestones, stall detection, PC hotspots via QMP, unimp/guest-error triage -> `bringup/runs/NNN/summary.{json,md}` |
 
 Python scripts run through `uv` (inline dependencies); don't call them with bare `python3`.

@@ -7,7 +7,8 @@ description: Generate the QEMU SoC container, board/machine, Kconfig/meson wirin
 
 Input: `socs/<soc>/spec/soc.yaml` (passes `scripts/spec-check.py`). Work in
 `worktrees/<soc>`. Follow `reference/qemu-conventions.md`, and copy idioms from the
-reference file it names for this profile (Cortex-A: `hw/arm/ax3000-soc.c`; Cortex-M:
+reference file it names for this profile and base (`socs/<soc>/qemu-base.env`; Cortex-A:
+`hw/arm/ax3000-soc.c` upstream, `hw/arm/fsl-imx8mp.c` on the libafl base; Cortex-M:
 `hw/arm/max78000_soc.c`) - open it before writing anything.
 
 ## Files (names use `<soc>` with `-` -> `_` for C identifiers)

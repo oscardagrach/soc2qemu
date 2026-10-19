@@ -6,6 +6,21 @@ file, open the reference file listed below and copy its current idioms (includes
 signature, property arrays, reset). If this document disagrees with the tree, follow the tree
 and fix this document.
 
+## QEMU base
+
+Each SoC records its base in `socs/<soc>/qemu-base.env`:
+
+- `QEMU_BASE=upstream` (default): upstream master. Everything below applies as written.
+- `QEMU_BASE=libafl`: AFL++'s `qemu-libafl-bridge` at the commit libafl_qemu pins (QEMU 10.2.0
+  + LibAFL patches, checked 2026-10-18), so the port can be fuzzed with libafl_qemu. Differences
+  from upstream that matter for new code:
+  - headers are at the old paths: `hw/sysbus.h`, `hw/qdev-core.h`, `hw/qdev-properties.h`,
+    `hw/irq.h`, `hw/registerfields.h` (not `hw/core/...`);
+  - `hw/arm/ax3000-*` does not exist; use `fsl-imx8mp.c` / `imx8mp-evk.c` as the Cortex-A reference;
+  - `class_init(ObjectClass *, const void *)`, `const Property[]` without END_OF_LIST, and
+    `arm_common_ss` are the same as upstream.
+  Never edit LibAFL's own patches in the tree; add SoC code next to them.
+
 ## Reference files to copy from
 
 | Need | Copy from | Why |

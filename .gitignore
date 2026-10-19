@@ -7,3 +7,4 @@ socs/*/intake/text/
 __pycache__/
 .kit-append.lock
 tests/fixture-m3/fixture.elf
+socs/*/fuzz/

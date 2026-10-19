@@ -23,7 +23,7 @@ Always read `socs/<soc>/STATUS.md` first and resume from the first phase not mar
 
 | # | Phase | How | Done when |
 |---|---|---|---|
-| 0 | Workspace | `scripts/new-soc.sh <soc>` (clones/configures QEMU on first use, takes a few minutes) | worktree configured |
+| 0 | Workspace | `scripts/new-soc.sh <soc>` (clones/configures QEMU on first use, takes a few minutes); add `--base libafl` only if the user wants to fuzz this SoC with libafl_qemu - the base can't be switched later | worktree configured |
 | 1 | Intake | workflow `soc-intake` with `args: {soc}`, or skill `qemu-soc-intake` for a small input set | `scripts/spec-check.py <soc>` passes |
 | 2 | Scaffold | skill `qemu-soc-scaffold` | machine builds, first `bringup-run.py` produces a summary |
 | 3 | Devices | workflow `soc-devices` with `args: {soc}` (parallel, one agent per `strategy: new` peripheral) | build OK, qtests pass |
@@ -34,6 +34,9 @@ Workflows need the user's opt-in: running this skill on the user's request count
 
 If `socs/<soc>/inputs/` is empty, stop and ask the user to drop material there (see
 `inputs/README.md`). That is the one required human step.
+
+After bring-up, `scripts/fuzz-profile.py <soc>` exports `socs/<soc>/fuzz/profile.yaml`
+(address map, polled MMIO reads, snapshot candidates) for a separate fuzzing harness.
 
 ## Minimal-interaction rules
 - Decide, don't ask. Pick the conservative option, record it in STATUS.md under a

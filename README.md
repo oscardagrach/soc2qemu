@@ -11,6 +11,17 @@ Port a new Arm SoC to QEMU with Claude Code doing most of the work.
    so you can check `spec/soc.yaml` first.
 4. Check `socs/<soc>/STATUS.md`. Anything that needs you is under "blocked on a human".
 
+## Fuzzing
+
+To fuzz a SoC with [libafl_qemu](https://github.com/AFLplusplus/LibAFL), start the port on
+AFL++'s QEMU fork instead of upstream: `scripts/new-soc.sh <soc> --base libafl` (or
+`base: "libafl"` in the `soc-port` workflow). The fork tracks an older QEMU (10.2.0 today), and
+the base can't be switched after porting starts. After bring-up,
+`scripts/fuzz-profile.py <soc>` writes `socs/<soc>/fuzz/profile.yaml`: the address map, MMIO
+registers the firmware polls (input candidates), boot milestones and hot PCs (snapshot
+candidates), and the QEMU tree to point `LIBAFL_QEMU_DIR` at. The harness itself lives outside
+this kit.
+
 ## Resume or run one phase
 - Workflows: `soc-intake`, `soc-devices`, `soc-bringup` (each takes `{soc}`), or `soc-port`
   with `from: "scaffold" | "devices" | "bringup"`.
