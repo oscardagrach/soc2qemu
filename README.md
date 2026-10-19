@@ -19,8 +19,8 @@ AFL++'s QEMU fork instead of upstream: `scripts/new-soc.sh <soc> --base libafl` 
 the base can't be switched after porting starts. After bring-up,
 `scripts/fuzz-profile.py <soc>` writes `socs/<soc>/fuzz/profile.yaml`: the address map, MMIO
 registers the firmware polls (input candidates), boot milestones and hot PCs (snapshot
-candidates), and the QEMU tree to point `LIBAFL_QEMU_DIR` at. The harness itself lives outside
-this kit.
+candidates), and the QEMU tree to point `LIBAFL_QEMU_DIR` at. The harness itself lives in
+[soc2qemu-fuzz](https://github.com/oscardagrach/soc2qemu-fuzz).
 
 ## Resume or run one phase
 - Workflows: `soc-intake`, `soc-devices`, `soc-bringup` (each takes `{soc}`), or `soc-port`
